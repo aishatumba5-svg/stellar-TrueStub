@@ -3,7 +3,7 @@
 import { StarRating } from "./StarRating";
 import { Badge } from "@/components/ui/badge";
 import { User, MessageSquare } from "lucide-react";
-import type { Review } from "@/graphql/types";
+import type { Review } from "@/types/ratings";
 
 interface ReviewsListProps {
   reviews?: Review[];

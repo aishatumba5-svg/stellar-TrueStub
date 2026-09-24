@@ -2,7 +2,7 @@
 
 import { StarRating } from "./StarRating";
 import { ShieldCheck, ThumbsUp, Award } from "lucide-react";
-import type { UserReputationSummary as ReputationSummaryType } from "@/graphql/types";
+import type { UserReputationSummary as ReputationSummaryType } from "@/types/ratings";
 
 interface UserReputationSummaryProps {
   reputation?: ReputationSummaryType;
