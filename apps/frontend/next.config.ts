@@ -185,6 +185,39 @@ const nextConfig: NextConfig = {
         : []),
     ],
   },
+
+  // ── Security headers (#85) ──────────────────────────────────────────────
+  // Applied to every response via the catch-all `/:path*` source.  The CSP
+  // is intentionally permissive for now (unsafe-inline / unsafe-eval) while
+  // the nonce/hash migration is tracked separately.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: securityHeaders,
+      },
+    ];
+  },
+
+  // ── Legacy-route redirects ──────────────────────────────────────────────
+  // The app was forked from SafeTrust (hospitality/tourism); some inbound
+  // links may still reference the old /rent and /guest paths.  Permanent
+  // redirects (308) preserve the HTTP method so bookmarked POST flows also
+  // land on the correct page.
+  async redirects() {
+    return [
+      {
+        source: "/rent/:path*",
+        destination: "/listing/:path*",
+        permanent: true,
+      },
+      {
+        source: "/guest/:path*",
+        destination: "/dashboard/guest/:path*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {
