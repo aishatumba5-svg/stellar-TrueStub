@@ -49,6 +49,15 @@ tw-blocks/escrows/
 
 The `single-multi-release/` name reflects that those dialogs handle **both** escrow types — not that the folder is a hybrid of the `single-release/` and `multi-release/` init forms.
 
+## 🧱 tw-blocks Providers
+
+The escrow blocks rely on a stack of context providers in
+`src/components/tw-blocks/providers/`. Their responsibilities and the required
+nesting order are documented in
+[`src/components/tw-blocks/providers/README.md`](../../components/tw-blocks/providers/README.md).
+`tw-blocks/providers/TrustlessWork.tsx` re-exports the `TrustlessWorkProvider`
+from this directory, so SDK configuration lives only in `config.ts`.
+
 ## 🚀 Getting Started
 
 ### 1. Environment Setup

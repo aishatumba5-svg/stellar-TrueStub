@@ -24,7 +24,7 @@ export function MyListingsTable() {
   const [search, setSearch] = useState("");
   const offset = page * ITEMS_PER_PAGE;
 
-  const { data } = useTicketListings({
+  const { data, loading, error } = useTicketListings({
     limit: ITEMS_PER_PAGE,
     offset,
     search,
@@ -83,10 +83,14 @@ export function MyListingsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {listings.length === 0 ? (
+            {loading || error || listings.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
-                  No listings found.
+                  {loading
+                    ? "Loading listings..."
+                    : error
+                      ? "Failed to load listings."
+                      : "No listings found."}
                 </TableCell>
               </TableRow>
             ) : (

@@ -24,6 +24,10 @@ export interface TicketListing {
   owner_id: string;
 }
 
+/**
+ * Static fixture data for tests and Storybook only.
+ * Live listing data comes from Hasura via `useTicketListings`.
+ */
 export const MOCK_LISTINGS: TicketListing[] = [
   {
     id: "1",
