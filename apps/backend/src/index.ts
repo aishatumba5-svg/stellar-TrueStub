@@ -9,6 +9,7 @@ import { authRateLimiter } from "./middleware/rateLimiter";
 import { errorHandler } from "./middleware/errorHandler";
 import { healthRouter } from "./routes/health";
 import { listingsRouter } from "./routes/listings";
+import { savedSearchesRouter, watchlistRouter } from "./routes/listing-alerts";
 import { webhookRouter } from "./routes/webhooks";
 // Issues #153–#156
 import { refundsRouter } from "./routes/refunds";
@@ -29,6 +30,8 @@ export function createApp(): Express {
   app.use("/api/auth", authRateLimiter);
   app.use("/health", healthRouter);
   app.use("/api/listings", listingsRouter);
+  app.use("/api/saved-searches", savedSearchesRouter);
+  app.use("/api/watchlist", watchlistRouter);
   app.use("/webhooks", webhookRouter);
   // #153 — Refund idempotency
   app.use("/api/refunds", refundsRouter);
