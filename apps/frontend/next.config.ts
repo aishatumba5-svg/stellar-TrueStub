@@ -20,6 +20,28 @@ import { withSentryConfig } from "@sentry/nextjs";
 // subscriptions and the WalletConnect relay.
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Remote listing image hosts — Issue #172
+//
+// Listing/event photos uploaded by sellers are served from Firebase Storage
+// (the project's NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET). NEXT_PUBLIC_LISTING_IMAGES_HOST
+// optionally adds one more host (e.g. an S3 bucket or CDN) without a code change.
+// These hosts feed both images.remotePatterns and the CSP img-src below.
+// ---------------------------------------------------------------------------
+
+const LISTING_IMAGES_HOST = (process.env.NEXT_PUBLIC_LISTING_IMAGES_HOST ?? "")
+  .replace(/^https?:\/\//, "")
+  .replace(/\/.*$/, "")
+  .trim();
+
+const LISTING_IMAGE_ORIGINS = [
+  // Firebase Storage download URLs (getDownloadURL)
+  "https://firebasestorage.googleapis.com",
+  // Firebase Storage public/GCS URLs
+  "https://storage.googleapis.com",
+  ...(LISTING_IMAGES_HOST ? [`https://${LISTING_IMAGES_HOST}`] : []),
+];
+
 const CSP = [
   // Fetch directives
   `default-src 'self'`,
@@ -32,7 +54,8 @@ const CSP = [
   `style-src 'self' 'unsafe-inline'`,
 
   // Images — self + data URIs (Leaflet markers, QR codes) + Stellar wallet icons
-  `img-src 'self' data: blob: https://stellar.creit.tech https://api.qrserver.com`,
+  // + remote listing photo hosts (Issue #172)
+  `img-src 'self' data: blob: https://stellar.creit.tech https://api.qrserver.com ${LISTING_IMAGE_ORIGINS.join(" ")}`,
 
   // Fonts — self
   `font-src 'self'`,
@@ -136,6 +159,30 @@ const nextConfig: NextConfig = {
         hostname: "stellar.creit.tech",
         pathname: "/wallet-icons/**",
       },
+      {
+        // Firebase Storage download URLs for listing/event photos (issue #172)
+        // e.g. https://firebasestorage.googleapis.com/v0/b/<bucket>/o/<path>?alt=media
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+        pathname: "/v0/b/**",
+      },
+      {
+        // Public Google Cloud Storage URLs for the Firebase bucket (issue #172)
+        // e.g. https://storage.googleapis.com/<bucket>/<path>
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        pathname: "/**",
+      },
+      // Optional extra listing photo host (S3 bucket / CDN) — issue #172
+      ...(LISTING_IMAGES_HOST
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: LISTING_IMAGES_HOST,
+              pathname: "/**",
+            },
+          ]
+        : []),
     ],
   },
 };
