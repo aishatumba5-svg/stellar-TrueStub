@@ -80,6 +80,50 @@ export class NotificationService {
     };
   }
 
+  /**
+   * Generic listing alert (saved-search match, watchlist price change, ...).
+   * Reuses the same email / push channels as escrow status notifications.
+   */
+  static async notifyListingAlert(payload: {
+    subject: string;
+    messageText: string;
+    actionUrl: string;
+    recipientEmail?: string;
+    recipientPushToken?: string;
+  }): Promise<NotificationResult> {
+    const { subject, messageText, actionUrl, recipientEmail, recipientPushToken } = payload;
+    let emailSent = false;
+    let pushSent = false;
+
+    if (recipientEmail) {
+      emailSent = await this.sendEmailNotification({
+        to: recipientEmail,
+        subject,
+        messageText,
+        actionUrl,
+        status: "listing_alert",
+      });
+    }
+    if (recipientPushToken) {
+      pushSent = await this.sendPushNotification({
+        token: recipientPushToken,
+        title: subject,
+        body: messageText,
+        data: { actionUrl },
+      });
+    }
+    if (!recipientEmail && !recipientPushToken) {
+      console.log(`[NotificationService] In-app only listing alert: "${subject}" -> ${messageText}`);
+    }
+
+    return {
+      emailSent,
+      pushSent,
+      channel: emailSent && pushSent ? "email+push" : emailSent ? "email" : pushSent ? "push" : "in-app",
+      timestamp: new Date().toISOString(),
+    };
+  }
+
   private static getNotificationContent(
     status: string,
     id: string,

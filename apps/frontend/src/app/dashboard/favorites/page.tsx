@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { CalendarDays, MapPin, Ticket } from 'lucide-react';
+import { CalendarDays, MapPin, Ticket, TrendingDown, TrendingUp } from 'lucide-react';
 import FavoriteButton from '@/components/ticket-listing-mobile/mobile/FavoriteButton';
 import { useFavoritesStore } from '@/core/store/data/favorites.store';
 import { STUB_EVENTS } from '@/lib/mockData/events';
+import { getPriceChange } from '@/lib/watchlist';
 
 export default function FavoritesPage() {
-  const { savedListingIds, removeSaved } = useFavoritesStore();
+  const { savedListingIds, savedPrices, removeSaved } = useFavoritesStore();
 
   // TODO: replace STUB_EVENTS with Apollo query → public.ticket_listings (Hasura)
   const savedListings = STUB_EVENTS.filter((listing) =>
@@ -20,7 +21,7 @@ export default function FavoritesPage() {
       <div>
         <h1 className="text-2xl font-bold">Saved listings</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Ticket listings you are watching
+          Ticket listings you are watching — we notify you when the price changes or one is about to sell
         </p>
       </div>
 
@@ -62,6 +63,23 @@ export default function FavoritesPage() {
                   <p className="text-sm text-primary font-semibold mt-1">
                     {listing.price.toLocaleString()} USDC
                   </p>
+                  {(() => {
+                    const change = getPriceChange(savedPrices[listing.id], listing.price);
+                    if (!change) return null;
+                    const Icon = change.direction === 'down' ? TrendingDown : TrendingUp;
+                    return (
+                      <p
+                        className={`text-xs font-medium flex items-center gap-1 ${
+                          change.direction === 'down' ? 'text-green-600' : 'text-red-600'
+                        }`}
+                      >
+                        <Icon className="h-3 w-3" />
+                        Price {change.direction === 'down' ? 'dropped' : 'increased'} from{' '}
+                        {change.previous.toLocaleString()} USDC ({change.percent > 0 ? '+' : ''}
+                        {change.percent}%)
+                      </p>
+                    );
+                  })()}
                   <p className="text-xs text-muted-foreground">
                     Face value {listing.faceValue.toLocaleString()} USDC ·{' '}
                     {listing.section} · {listing.seat}
